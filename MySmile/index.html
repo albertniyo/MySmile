@@ -1,13 +1,30 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MySmile</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MySmile - Home</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <ul>
+      <li><a href="/index.html">MySmile</a></li>
+      <li><a href="/resources.html">Resources</a></li>
+      <li><a href="/testimonials.html">Testimonials</a></li>
+      <li><a href="/screening.html">Screening</a></li>
+      <li><a href="/login.html">Login</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="hero" class="hero">
+    <div class="slide" style="background-image: url('/hero1.jpg');"></div>
+    <div class="slide" style="background-image: url('/hero2.jpg');"></div>
+    <div class="slide" style="background-image: url('/hero3.jpg');"></div>
+  </section>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
 </html>
