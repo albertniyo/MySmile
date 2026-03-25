@@ -1,11 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import BlogPostPreviewCard from "@/components/BlogPostPreviewCard";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase, BlogPost } from "@/lib/supabase";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const FALLBACK_BLOGS: BlogPost[] = [
+// BlogPost type
+interface BlogPost {
+  id: string | number;
+  title: string;
+  excerpt: string;
+  content?: string;
+  date: string;
+  image: string;
+  category?: string;
+  created_at?: string;
+}
+
+// Fallback blog data – this is what will be shown
+const BLOG_POSTS: BlogPost[] = [
   {
     id: 1,
     title: "Digital Future",
@@ -49,45 +61,8 @@ const FALLBACK_BLOGS: BlogPost[] = [
 ];
 
 const BlogPage = () => {
-  const [blogs, setBlogs] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [blogs] = useState<BlogPost[]>(BLOG_POSTS);
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
-
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('blogs')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          const enrichedData = data.map(blog => ({
-            ...blog,
-            content: blog.content || FALLBACK_BLOGS.find(f => f.title === blog.title)?.content || blog.excerpt
-          }));
-          setBlogs(enrichedData);
-        } else {
-          setBlogs(FALLBACK_BLOGS);
-        }
-      } catch (err) {
-        console.error("Error fetching blogs:", err);
-        setBlogs(FALLBACK_BLOGS);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBlogs();
-  }, []);
-
-  useEffect(() => {
-    if (selectedPost) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }, [selectedPost]);
 
   const distributePosts = () => {
     const left: BlogPost[] = [];
@@ -109,8 +84,8 @@ const BlogPage = () => {
     return (
       <div className="min-h-screen bg-white pt-32 pb-24">
         <div className="container mx-auto px-6 max-w-4xl">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => setSelectedPost(null)}
             className="mb-12 group flex items-center gap-2 text-stone-400 hover:text-stone-900 transition-colors p-0 uppercase text-[10px] tracking-[0.3em] font-black"
           >
@@ -127,15 +102,15 @@ const BlogPage = () => {
               <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-stone-400">{selectedPost.date}</span>
               <div className="h-px w-12 bg-stone-100" />
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-light text-stone-900 mb-12 uppercase tracking-tighter leading-tight">
               {selectedPost.title}
             </h1>
 
             <div className="aspect-[16/9] rounded-[3rem] overflow-hidden mb-16 shadow-2xl">
-              <img 
-                src={selectedPost.image} 
-                alt={selectedPost.title} 
+              <img
+                src={selectedPost.image}
+                alt={selectedPost.title}
                 className="w-full h-full object-cover grayscale-[0.2]"
               />
             </div>
@@ -144,7 +119,7 @@ const BlogPage = () => {
               <p className="text-xl md:text-2xl text-stone-400 font-light italic mb-12 leading-relaxed font-serif">
                 "{selectedPost.excerpt}"
               </p>
-              
+
               <div className="prose prose-stone lg:prose-xl max-w-none text-stone-700 leading-relaxed font-light">
                 <p className="mb-8">
                   {selectedPost.content}
@@ -178,7 +153,7 @@ const BlogPage = () => {
 
   return (
     <div className="min-h-screen bg-white selection:bg-stone-100 selection:text-stone-900">
-      {/* blog Hero Section */}
+      {/* Hero Section */}
       <section className="pt-40 pb-24 md:pb-40">
         <div className="container mx-auto px-6">
           <motion.div
@@ -199,69 +174,49 @@ const BlogPage = () => {
         </div>
       </section>
 
-      {/* 3-column blog grid */}
-      <section className="pb-40 md:pb-60 min-h-[400px]">
+      {/* 3‑column blog grid */}
+      <section className="pb-40 md:pb-60">
         <div className="container mx-auto px-6">
-          <AnimatePresence mode="wait">
-            {loading ? (
-              <motion.div 
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex items-center justify-center py-24"
-              >
-                <Loader2 className="w-10 h-10 animate-spin text-stone-300" />
-              </motion.div>
-            ) : (
-              <motion.div 
-                key="grid"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start"
-              >
-                {/* Left Column */}
-                <div className="lg:col-span-3 space-y-24 md:space-y-40 order-2 lg:order-1">
-                  {left.map((post) => (
-                    <BlogPostPreviewCard 
-                      key={post.id} 
-                      {...post} 
-                      size="small" 
-                      onClick={() => setSelectedPost(post)}
-                    />
-                  ))}
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
+            {/* Left Column */}
+            <div className="lg:col-span-3 space-y-24 md:space-y-40 order-2 lg:order-1">
+              {left.map((post) => (
+                <BlogPostPreviewCard
+                  key={post.id}
+                  {...post}
+                  size="small"
+                  onClick={() => setSelectedPost(post)}
+                />
+              ))}
+            </div>
 
-                {/* middle column (large) */}
-                <div className="lg:col-span-6 space-y-32 md:space-y-48 order-1 lg:order-2">
-                  {middle.map((post) => (
-                    <BlogPostPreviewCard 
-                      key={post.id} 
-                      {...post} 
-                      size="large" 
-                      onClick={() => setSelectedPost(post)}
-                    />
-                  ))}
-                </div>
+            {/* Middle Column (larger) */}
+            <div className="lg:col-span-6 space-y-32 md:space-y-48 order-1 lg:order-2">
+              {middle.map((post) => (
+                <BlogPostPreviewCard
+                  key={post.id}
+                  {...post}
+                  size="large"
+                  onClick={() => setSelectedPost(post)}
+                />
+              ))}
+            </div>
 
-                {/* right column */}
-                <div className="lg:col-span-3 space-y-24 md:space-y-40 order-3">
-                  {right.map((post) => (
-                    <BlogPostPreviewCard 
-                      key={post.id} 
-                      {...post} 
-                      size="small" 
-                      onClick={() => setSelectedPost(post)}
-                    />
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            {/* Right Column */}
+            <div className="lg:col-span-3 space-y-24 md:space-y-40 order-3">
+              {right.map((post) => (
+                <BlogPostPreviewCard
+                  key={post.id}
+                  {...post}
+                  size="small"
+                  onClick={() => setSelectedPost(post)}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* minimal footer */}
       <section className="py-40 md:py-60 border-t border-stone-50 bg-stone-50/30">
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-16 md:gap-24">
@@ -271,9 +226,9 @@ const BlogPage = () => {
             </div>
             <div className="w-full md:w-auto flex flex-col sm:flex-row gap-4 items-end">
               <div className="flex-1 border-b border-stone-200">
-                <input 
-                  type="email" 
-                  placeholder="EMAIL@EXAMPLE.COM" 
+                <input
+                  type="email"
+                  placeholder="EMAIL@EXAMPLE.COM"
                   className="bg-transparent px-0 py-6 focus:outline-none text-stone-900 placeholder:text-stone-300 w-full md:w-96 transition-all font-light tracking-widest text-sm"
                 />
               </div>
