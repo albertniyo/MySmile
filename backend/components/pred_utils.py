@@ -1,11 +1,21 @@
 """
 Prediction and feedback utilities for oral cancer detection.
 """
-import torch
+import os
 import time
 from typing import Tuple, Dict, Any
+from PIL import Image
+from huggingface_hub import InferenceClient
 
-# pre‑defined feedback templates for performance
+# Hugging Face model ID and client
+HF_MODEL_ID = "mysmile/umlomo"  # Replace with your actual model ID
+HF_API_TOKEN = os.getenv("HF_API_TOKEN")
+if not HF_API_TOKEN:
+    raise ValueError("HF_API_TOKEN environment variable not set")
+
+client = InferenceClient(model=HF_MODEL_ID, token=HF_API_TOKEN)
+
+# Pre‑defined feedback templates for performance
 FEEDBACK_TEMPLATES = {
     'normal_high': {
         'main_message': "Your oral health appears to be good based on the image analysis.",
@@ -76,55 +86,45 @@ FEEDBACK_TEMPLATES = {
     }
 }
 
-def predict_image_class(image_tensor: torch.Tensor,
-                        model: torch.nn.Module,
-                        class_names: list,
-                        device: torch.device) -> Tuple[str, float]:
+def predict_image_class(image: Image.Image,
+                        model=None,        # kept for compatibility, not used
+                        class_names=None,  # kept for compatibility, not used
+                        device=None) -> Tuple[str, float]:
     """
-    Run inference on a preprocessed image tensor.
+    Run inference using Hugging Face Inference API.
 
     Args:
-        image_tensor: Batched tensor (1, C, H, W)
-        model: PyTorch model (already on device and in eval mode)
-        class_names: List of class names in order
-        device: Torch device
+        image: PIL Image (RGB)
+        model, class_names, device: Ignored; kept for compatibility.
 
     Returns:
         Tuple of (predicted_class_name, probability)
     """
-    if image_tensor is None:
+    if image is None:
         return "Error: Could not process image", 0.0
 
     try:
         start_time = time.time()
-        image_tensor = image_tensor.to(device)
-        model.eval()  # eval mode
+        response = client.image_classification(image=image)
+        # response is a list of {"label": "LABEL_0", "score": 0.98}, ...
+        best = max(response, key=lambda x: x['score'])
+        # Map labels: expects "LABEL_0" = Normal, "LABEL_1" = Oral Cancer
+        predicted_class = "Normal" if best['label'] == "LABEL_0" else "Oral Cancer"
+        probability = best['score']
 
-        with torch.no_grad():
-            outputs = model(image_tensor)
-            probabilities = torch.softmax(outputs, dim=1)
-            predicted_prob, predicted_idx = torch.max(probabilities, 1)
+        inference_time = time.time() - start_time
+        print(f"Prediction completed in {inference_time:.3f}s")
 
-            predicted_class = class_names[predicted_idx.item()]
-            inference_time = time.time() - start_time
-            print(f"Prediction completed in {inference_time:.3f}s")
-
-            return predicted_class, predicted_prob.item()
+        return predicted_class, probability
 
     except Exception as e:
+        print(f"Prediction error: {e}")
         return f"Prediction error: {str(e)}", 0.0
 
 def get_prediction_feedback(predicted_class: str,
                             predicted_probability: float) -> Dict[str, Any]:
     """
     Generate detailed feedback based on prediction result.
-
-    Args:
-        predicted_class: One of 'Normal' or 'Oral Cancer'
-        predicted_probability: Confidence score (0..1)
-
-    Returns:
-        Dictionary with main_message, urgency_level, detailed_advice, recommendations.
     """
     if predicted_class == 'Normal':
         if predicted_probability > 0.8:
