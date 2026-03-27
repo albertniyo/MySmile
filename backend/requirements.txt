@@ -1,7 +1,7 @@
 --index-url https://download.pytorch.org/whl/cpu
 torch>=2.11.0
 torchvision>=0.26.0
-fastapi[standard]>=0.135.1
+fastapi[standard]==0.135.2
 pillow>=12.1.1
 python-dotenv>=1.2.2
 python-multipart>=0.0.22
