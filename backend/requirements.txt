@@ -1,3 +1,6 @@
+--index-url https://download.pytorch.org/whl/cpu
+torch>=2.11.0
+torchvision>=0.26.0
 fastapi[standard]>=0.135.1
 pillow>=12.1.1
 python-dotenv>=1.2.2
@@ -5,3 +8,4 @@ python-multipart>=0.0.22
 huggingface_hub>=1.8.0
 httpx==0.28.1
 uvicorn[standard]>=0.41.0
+requests

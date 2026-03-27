@@ -11,11 +11,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Import only what we need – no local model loading
 from components import (
+    load_oral_cancer_model,
+    preprocess_image,
     predict_image_class,
     get_prediction_feedback,
     CLASS_NAMES,
+    device
 )
 
 app = FastAPI(
@@ -26,22 +28,38 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # for testing; restrict in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Global model
+MODEL = None
+
+@app.on_event("startup")
+async def load_model():
+    """Load the model at startup."""
+    global MODEL
+    model_path = os.getenv("MODEL_PATH", "model/UmlomoV1.pth")
+    MODEL = load_oral_cancer_model(model_path)
+    if MODEL is None:
+        raise RuntimeError(f"Failed to load model from {model_path}")
+    print("Model and preprocessing ready")
 
 @app.get("/")
 async def root():
     return {
         "message": "Oral Cancer Detection API",
         "status": "running",
-        "model_loaded": True  # we always have the API
+        "model_loaded": MODEL is not None
     }
 
 @app.get("/api/health")
 async def health_check():
+    """Health check endpoint."""
+    if MODEL is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
     return {"status": "ok"}
 
 @app.post("/api/predict")
@@ -50,31 +68,34 @@ async def predict(file: UploadFile = File(...)):
     Predict oral cancer from an uploaded image.
     Returns predicted class, probability, and detailed feedback.
     """
+    if MODEL is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
 
     try:
-        # Read image file and convert to PIL
+        # Read image
         contents = await file.read()
         image = Image.open(io.BytesIO(contents)).convert("RGB")
+        image_tensor = preprocess_image(image)  # returns batched tensor
+        if image_tensor is None:
+            raise HTTPException(status_code=400, detail="Could not preprocess image")
 
-        # Run prediction using Hugging Face Inference API
-        predicted_class, probability = predict_image_class(image)
-
-        # Get feedback based on result
+        predicted_class, probability = predict_image_class(
+            image_tensor, MODEL, CLASS_NAMES, device
+        )
         feedback = get_prediction_feedback(predicted_class, probability)
 
-        response = {
+        return JSONResponse(content={
             "predicted_class": predicted_class,
             "probability": probability,
             "feedback": feedback
-        }
-
-        return JSONResponse(content=response)
+        })
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
 
+# Nearby clinics endpoint (unchanged)
 class NearbyClinicsRequest(BaseModel):
     lat: float
     lng: float
@@ -115,6 +136,7 @@ async def get_nearby_clinics(request: NearbyClinicsRequest):
                     },
                     "place_id": place.get('place_id'),
                 })
+            # Rate limit
             import time
             time.sleep(1)
             return {"status": "ok", "results": results}
