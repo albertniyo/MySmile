@@ -50,7 +50,7 @@ const NearbyClinics: React.FC = () => {
       const params = {
         q: query,
         format: "json",
-        limit: 1,
+        limit: "1",
       };
       const headers = {
         "User-Agent": "MySmileApp/1.0",
