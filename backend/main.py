@@ -28,7 +28,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://my-smile.vercel.app/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -120,7 +120,7 @@ async def get_nearby_clinics(request: NearbyClinicsRequest):
         }
         headers = {
             'User-Agent': 'MySmileApp/1.0',
-            'From': 'your-email@example.com'
+            'From': 'info@mysmile.com'
         }
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params=params, headers=headers)
