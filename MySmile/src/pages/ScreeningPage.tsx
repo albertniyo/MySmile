@@ -116,7 +116,7 @@ const ScreeningPage = () => {
     formData.append("file", selectedFile);
 
     try {
-      const response = await fetch("https://mysmile-production.up.railway.app/predict", {
+      const response = await fetch("https://mysmile-production.up.railway.app/api/predict", {
         method: "POST",
         body: formData,
       });
