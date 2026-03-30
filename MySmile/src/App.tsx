@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import Navbar from "@/components/Navbar";
 import HomePage from "@/pages/HomePage";
 import BlogPage from "@/pages/BlogPage";
@@ -16,6 +17,7 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-white font-sans text-stone-900 selection:bg-stone-100 selection:text-stone-900 flex flex-col">
+        <SpeedInsights />
         <Toaster position="top-right" richColors />
         <Navbar />
         
