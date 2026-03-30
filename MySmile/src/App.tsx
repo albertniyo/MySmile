@@ -60,15 +60,16 @@ function App() {
                 </ul>
               </div>
               <div>
-                <h4 className="text-[10px] font-bold uppercase tracking-[0.3em] mb-10 text-white">Connect</h4>
-                <p className="text-stone-500 text-sm font-light mb-4">100 Minimalist Ave, Suite 400<br />New York, NY 10001</p>\
-                <p className="text-white font-bold text-sm mb-2 uppercase tracking-[0.2em]">+1 212 555 SMILE</p>\
-                <p className="text-stone-500 text-sm font-light">care@mysmile.studio</p>
+                <h4 className="text-[10px] font-bold uppercase tracking-[0.3em] mb-10 text-white">Find Us</h4>
+                <p className="text-stone-500 text-sm font-light mb-4">African Leadership University</p>
+                <p className="text-stone-500 text-sm font-light mb-4">Bumbogo, Kigali Innovation City,</p>
+                <p className="text-stone-500 text-sm font-light mb-4">Next to Azam, Kigali, Rwanda</p>
+                <p className="text-white font-bold text-sm mb-2 uppercase tracking-[0.2em]">For Your Smile</p>
               </div>
             </div>
             
             <div className="border-t border-stone-800 pt-12 flex flex-col md:flex-row justify-between items-center gap-8">
-              <p className="text-stone-600 text-[9px] uppercase tracking-[0.4em] font-bold">© 2024 MySmile Studio.</p>
+              <p className="text-stone-600 text-[9px] uppercase tracking-[0.4em] font-bold">© 2026 MySmile.</p>
               <div className="flex items-center gap-10">
                 <Link to="/security-privacy" className="text-stone-700 hover:text-stone-400 transition-colors text-[9px] uppercase tracking-[0.3em] font-bold">Security & Privacy</Link>
                 <Link to="/terms-conditions" className="text-stone-700 hover:text-stone-400 transition-colors text-[9px] uppercase tracking-[0.3em] font-bold">Terms & Conditions</Link>

@@ -83,7 +83,7 @@ const TermsPage: React.FC = () => {
           <section>
             <h3 className="text-lg font-light text-stone-900 mb-6 border-b border-stone-200 pb-4">7. Modifications and Contact</h3>
             <p className="text-sm font-light leading-loose">
-              We may update these terms from time to time. The latest version will always be available on this page. If you have any questions, please contact us at <a href="mailto:care@mysmile.studio" className="text-stone-900 underline">care@mysmile.studio</a>.
+              We may update these terms from time to time. The latest version will always be available on this page. If you have any questions, please contact us at <a href="mailto:a.niyonseng@alustudent.com" className="text-stone-900 underline">admin@mysmile.com</a>.
             </p>
           </section>
         </div>
