@@ -28,7 +28,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://my-smile.vercel.app"],
+    allow_origins=["https://my-smile.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
