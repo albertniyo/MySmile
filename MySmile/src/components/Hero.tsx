@@ -56,7 +56,7 @@ const HomePage = () => {
       </div>
 
       <div className="relative z-10">
-        <Hero onStartScreening={() => navigate("/screening")} />
+        <Hero />
 
         {/* Services Section */}
         <section id="services" className="py-32 container mx-auto px-6">
