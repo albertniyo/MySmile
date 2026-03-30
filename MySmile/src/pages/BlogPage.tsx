@@ -187,15 +187,10 @@ const BlogPage = () => {
 
               <div className="mt-20 pt-12 border-t border-stone-100 flex flex-col sm:flex-row items-center justify-between gap-8">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-stone-100 overflow-hidden">
-                    <img src="2.jpg" className="w-full h-full object-cover" alt="Author" />
-                  </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900">Dr. Julian Vance</p>
-                    <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-stone-400">Clinical Director</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900">Admin</p>
                   </div>
                 </div>
-                <Button variant="outline" className="rounded-full px-8">Share Article</Button>
               </div>
             </div>
           </motion.div>
