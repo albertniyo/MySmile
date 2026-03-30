@@ -54,7 +54,7 @@ const NearbyClinics: React.FC = () => {
       };
       const headers = {
         "User-Agent": "MySmileApp/1.0",
-        "From": "your-email@example.com",
+        "From": "test@mysmile.com",
       };
       const response = await fetch(`${url}?${new URLSearchParams(params)}`, { headers });
       const data = await response.json();
@@ -85,7 +85,7 @@ const NearbyClinics: React.FC = () => {
 
   const fetchClinics = async (lat: number, lng: number) => {
     try {
-      const response = await fetch("http://localhost:8000/api/clinics/nearby", {
+      const response = await fetch("https://mysmile-production.up.railway.app/api/clinics/nearby", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lat, lng, radius: 5000 }),
