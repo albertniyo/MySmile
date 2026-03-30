@@ -1,140 +1,164 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import Hero from "@/components/Hero";
+import { CheckCircle2, Star, Shield, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { getBlogs, BlogPost } from "@/lib/supabase";
 
-interface HeroProps {
-  onStartScreening?: () => void;
-}
-
-const images = [
-  "1.jpg",
-  "2.jpg",
-  "3.jpg",
-  "4.jpg",
-  "5.jpg",
-  "6.jpg",
-  "7.jpg"
-]
-const Hero: React.FC<HeroProps> = ({ onStartScreening }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+const HomePage = () => {
+  const navigate = useNavigate();
+  const [latestPosts, setLatestPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 6000);
-    return () => clearInterval(timer);
+    const fetchLatestPosts = async () => {
+      try {
+        const data = await getBlogs();
+        // Take the two most recent posts
+        setLatestPosts(data.slice(0, 2));
+      } catch (err) {
+        console.error("Error fetching latest posts:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLatestPosts();
   }, []);
 
+  // Fallback static posts in case Supabase fails or returns empty
+  const fallbackPosts = [
+    {
+      id: "fallback1",
+      title: "Optimal Oral Care",
+      excerpt: "The essential guide to maintaining clinical standards at home...",
+      image: "3.jpg",
+      type: "article",
+    },
+    {
+      id: "fallback2",
+      title: "Precision Tools",
+      excerpt: "How digital imaging is redefining the patient experience and accuracy...",
+      image: "3.jpg",
+      type: "article",
+    },
+  ];
+
+  const postsToShow = latestPosts.length > 0 ? latestPosts : fallbackPosts;
+
   return (
-    <section className="relative h-[90vh] md:h-screen w-full overflow-hidden flex items-center bg-stone-900">
-      {/* Background Slideshow */}
-      <div className="absolute inset-0 z-0">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentIndex}
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1.1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 2, ease: "circOut" }}
-            className="absolute inset-0"
-          >
-            <div
-              className="absolute inset-0 bg-cover bg-center grayscale transition-all duration-1000"
-              style={{ backgroundImage: `url(${images[currentIndex]})` }}
-            />
-          </motion.div>
-        </AnimatePresence>
-        {/* Overlay for aesthetic */}
-        <div className="absolute inset-0 bg-gradient-to-b from-stone-900/60 via-stone-900/30 to-stone-900/80" />
+    <div className="relative min-h-screen">
+      {/* background image with low opacity */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/bg-hero.jpg')" }}
+      >
+        <div className="absolute inset-0 bg-black/30" />
       </div>
 
-      <div className="container mx-auto px-6 relative z-10 pt-20">
-        <div className="max-w-4xl">
-          <motion.div
-            initial={{ y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          >
-            <span className="inline-block text-stone-400 text-[10px] font-bold uppercase tracking-[0.5em] mb-8">
-              EST. 2024 • ESSENTIAL WELLNESS
-            </span>
-            <h1 className="text-5xl md:text-8xl font-light text-white leading-[1.1] mb-10 uppercase tracking-tighter">
-              The Art of <br />
-              <span className="italic font-serif normal-case text-stone-400">Minimalist</span> Care
-            </h1>
+      <div className="relative z-10">
+        <Hero onStartScreening={() => navigate("/screening")} />
 
-            <p className="text-lg md:text-xl text-stone-300 font-light mb-12 max-w-2xl leading-relaxed">
-              We strip away the complexity of traditional dentistry to focus on what truly matters: your long-term oral health and aesthetic confidence.
+        {/* Services Section */}
+        <section id="services" className="py-32 container mx-auto px-6">
+          <div className="text-center max-w-2xl mx-auto mb-20">
+            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-stone-400 mb-6 block">Expertise</span>
+            <h2 className="text-4xl md:text-6xl font-light mb-8 text-stone-900 uppercase tracking-tighter">Our Specialties</h2>
+            <p className="text-stone-500 text-lg font-light leading-relaxed">
+              Precision meets care. We provide a curated selection of dental services designed for optimal results and patient comfort.
             </p>
+          </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+            {/* Preventive */}
+            <div className="bg-white p-12 rounded-[2.5rem] shadow-sm border border-stone-100 hover:shadow-2xl transition-all duration-700 group">
+              <div className="w-14 h-14 bg-stone-50 rounded-2xl flex items-center justify-center text-stone-400 mb-10 group-hover:bg-stone-900 group-hover:text-white transition-all duration-500">
+                <Star size={24} />
+              </div>
+              <h3 className="text-2xl font-light mb-6 uppercase tracking-tight">Preventive</h3>
+              <p className="text-stone-500 font-light leading-relaxed text-sm">
+                Essential maintenance and early detection to preserve your natural smile for a lifetime.
+              </p>
+            </div>
+
+            {/* Restorative */}
+            <div className="bg-white p-12 rounded-[2.5rem] shadow-sm border border-stone-100 hover:shadow-2xl transition-all duration-700 group">
+              <div className="w-14 h-14 bg-stone-50 rounded-2xl flex items-center justify-center text-stone-400 mb-10 group-hover:bg-stone-900 group-hover:text-white transition-all duration-500">
+                <CheckCircle2 size={24} />
+              </div>
+              <h3 className="text-2xl font-light mb-6 uppercase tracking-tight">Restorative</h3>
+              <p className="text-stone-500 font-light leading-relaxed text-sm">
+                Advanced techniques to rebuild function and form with biocompatible, aesthetic materials.
+              </p>
+            </div>
+
+            {/* Cosmetic */}
+            <div className="bg-white p-12 rounded-[2.5rem] shadow-sm border border-stone-100 hover:shadow-2xl transition-all duration-700 group">
+              <div className="w-14 h-14 bg-stone-50 rounded-2xl flex items-center justify-center text-stone-400 mb-10 group-hover:bg-stone-900 group-hover:text-white transition-all duration-500">
+                <Shield size={24} />
+              </div>
+              <h3 className="text-2xl font-light mb-6 uppercase tracking-tight">Cosmetic</h3>
+              <p className="text-stone-500 font-light leading-relaxed text-sm">
+                Artistic enhancements that elevate your confidence through natural-looking smile transformations.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* featured blog preview section */}
+        <section className="py-32 bg-stone-50/50">
+          <div className="container mx-auto px-6">
+            <div className="flex flex-col md:flex-row items-end justify-between mb-20">
+              <div className="max-w-2xl">
+                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-stone-400 mb-6 block">Insights</span>
+                <h2 className="text-4xl md:text-6xl font-light mb-4 text-stone-900 uppercase tracking-tighter">The Journal</h2>
+                <p className="text-stone-500 text-lg font-light leading-relaxed">
+                  Current perspectives on health, technology, and clinical excellence.
+                </p>
+              </div>
               <Button
+                onClick={() => navigate("/blog")}
                 variant="outline"
                 size="lg"
-                className="w-full sm:w-auto bg-white text-stone-900 hover:bg-stone-100 hover:border-white border-transparent transition-all duration-500"
-                onClick={onStartScreening}
+                className="mt-8 md:mt-0 shadow-sm transition-all"
               >
-                Start Screening
-              </Button>
-              <Button
-                variant="ghost"
-                size="lg"
-                className="w-full sm:w-auto text-white hover:text-stone-300 transition-all flex items-center gap-3"
-              >
-                View Journal <ArrowRight size={14} />
+                Read More
               </Button>
             </div>
-          </motion.div>
 
-          {/* Subtle Stats */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 1 }}
-            className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 border-t border-white/10 pt-12"
-          >
-            <div>
-              <p className="text-white text-xl md:text-2xl font-light uppercase tracking-tighter mb-1">15k+</p>
-              <p className="text-stone-500 text-[9px] font-bold uppercase tracking-[0.2em]">Care Sessions</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
+              {postsToShow.map((post, idx) => (
+                <div
+                  key={post.id}
+                  className="group cursor-pointer bg-white rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row h-full shadow-sm hover:shadow-2xl transition-all duration-1000"
+                  onClick={() => navigate("/blog")}
+                >
+                  <div className="md:w-1/2 overflow-hidden aspect-video md:aspect-auto">
+                    <img
+                      src={post.image || "3.jpg"}
+                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 grayscale-[0.5] group-hover:grayscale-0"
+                      alt={post.title}
+                    />
+                  </div>
+                  <div className="md:w-1/2 p-10 flex flex-col justify-center">
+                    <span className="text-stone-400 text-[9px] font-bold uppercase tracking-[0.3em] mb-4">
+                      {idx === 0 ? "Clinical" : "Tech"}
+                    </span>
+                    <h3 className="text-xl font-light text-stone-900 mb-4 uppercase tracking-tight">{post.title}</h3>
+                    <p className="text-stone-500 text-xs font-light mb-8 leading-relaxed line-clamp-2">
+                      {post.excerpt}
+                    </p>
+                    <div className="flex items-center gap-3 text-stone-900 text-[9px] font-black uppercase tracking-[0.3em] group-hover:translate-x-2 transition-transform duration-500">
+                      Read Journal <ArrowRight size={14} />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div>
-              <p className="text-white text-xl md:text-2xl font-light uppercase tracking-tighter mb-1">99%</p>
-              <p className="text-stone-500 text-[9px] font-bold uppercase tracking-[0.2em]">Patient Rating</p>
-            </div>
-            <div>
-              <p className="text-white text-xl md:text-2xl font-light uppercase tracking-tighter mb-1">05+</p>
-              <p className="text-stone-500 text-[9px] font-bold uppercase tracking-[0.2em]">Modern Studios</p>
-            </div>
-            <div className="hidden md:flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {[1,2,3].map(i => (
-                   <div key={i} className="w-7 h-7 rounded-full border border-stone-800 bg-stone-700" />
-                ))}
-              </div>
-              <p className="text-stone-500 text-[9px] font-bold uppercase tracking-[0.2em]">Certified Care</p>
-            </div>
-          </motion.div>
-        </div>
+          </div>
+        </section>
       </div>
-
-      {/* Vertical Progress Bar */}
-      <div className="absolute right-8 md:right-12 top-1/2 -translate-y-1/2 hidden lg:flex flex-col gap-8 items-center">
-        {images.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentIndex(i)}
-            className={cn(
-              "w-px transition-all duration-700",
-              currentIndex === i ? "h-12 bg-white" : "h-6 bg-stone-700"
-            )}
-            aria-label={`Slide ${i + 1}`}
-          />
-        ))}
-      </div>
-    </section>
+    </div>
   );
 };
 
-export default Hero;
+export default HomePage;

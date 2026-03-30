@@ -1,89 +1,71 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { Play } from "lucide-react";
 
-interface BlogPostProps {
+interface BlogPostPreviewCardProps {
+  id: string | number;
   title: string;
   excerpt: string;
   date: string;
   image: string;
-  size?: "small" | "large";
-  onClick?: () => void;
+  type?: "article" | "video";
+  video_id?: string;
+  size: "small" | "large";
+  onClick: () => void;
 }
 
-const BlogPostPreviewCard: React.FC<BlogPostProps> = ({
+const BlogPostPreviewCard: React.FC<BlogPostPreviewCardProps> = ({
   title,
   excerpt,
   date,
   image,
-  size = "small",
+  type = "article",
+  video_id,
+  size,
   onClick,
 }) => {
   const isLarge = size === "large";
+  const isVideo = type === "video";
+
+  // YouTube thumbnail URL
+  const thumbnailUrl = isVideo && video_id
+    ? `https://img.youtube.com/vi/${video_id}/hqdefault.jpg`
+    : image;
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 1, ease: "easeOut" }}
-      className={`group flex flex-col transition-all duration-700 cursor-pointer ${isLarge ? "gap-10" : "gap-8"}`}
+    <motion.div
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.3 }}
+      className={`group cursor-pointer ${isLarge ? "space-y-10" : "space-y-6"}`}
       onClick={onClick}
     >
-      {/* Picture at the top */}
-      <div
-        className={`relative overflow-hidden bg-stone-50 rounded-[2.5rem] transition-all duration-1000 ${
-          isLarge ? "aspect-[16/10] grayscale-[0.3] group-hover:grayscale-0" : "aspect-[4/5] grayscale-[0.8] group-hover:grayscale-0 shadow-sm"
-        }`}
-      >
+      <div className={`relative overflow-hidden rounded-[2rem] bg-stone-100 ${isLarge ? "aspect-[4/3]" : "aspect-[3/4]"}`}>
         <img
-          src={image}
+          src={thumbnailUrl}
           alt={title}
-          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 grayscale-[0.4] group-hover:grayscale-0"
         />
-        <div className="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+        {isVideo && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
+            <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center text-stone-900 group-hover:scale-110 transition-transform">
+              <Play size={24} className="ml-1" />
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Content Area */}
-      <div className="flex flex-col space-y-6">
+      <div className="space-y-3">
         <div className="flex items-center gap-4">
-          <span className="text-[9px] font-black tracking-[0.4em] uppercase text-stone-400 group-hover:text-stone-900 transition-colors duration-500">
-            {date}
-          </span>
-          <div className="h-px w-8 bg-stone-100 group-hover:w-12 transition-all duration-700" />
+          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-stone-400">{date}</span>
+          <div className="h-px w-8 bg-stone-100" />
         </div>
-
-        <div className="space-y-4">
-          <h3
-            className={`font-light text-stone-900 leading-[1.1] transition-colors uppercase tracking-tighter ${
-              isLarge ? "text-3xl md:text-6xl" : "text-xl md:text-2xl"
-            }`}
-          >
-            {title}
-          </h3>
-          <p
-            className={`text-stone-500 font-light leading-relaxed ${
-              isLarge ? "text-lg md:text-xl max-w-2xl" : "text-sm line-clamp-3 uppercase tracking-wide"
-            }`}
-          >
-            {excerpt}
-          </p>
-        </div>
-
-        <div className="pt-4">
-           <Button 
-             variant="ghost" 
-             className="group/btn p-0 hover:bg-transparent h-auto text-stone-900 font-black flex items-center gap-4 uppercase text-[10px] tracking-[0.3em]"
-           >
-             <span className="border-b border-transparent group-hover/btn:border-stone-900 transition-all">Explore Article</span>
-             <div className="p-2 rounded-full border border-stone-200 group-hover/btn:bg-stone-900 group-hover/btn:text-white transition-all">
-               <ArrowRight size={14} />
-             </div>
-           </Button>
-        </div>
+        <h3 className={`font-light ${isLarge ? "text-3xl md:text-4xl" : "text-xl"} tracking-tighter text-stone-800 group-hover:text-stone-500 transition-colors`}>
+          {title}
+        </h3>
+        <p className={`text-stone-500 leading-relaxed ${isLarge ? "text-base" : "text-sm"}`}>
+          {excerpt}
+        </p>
       </div>
-    </motion.article>
+    </motion.div>
   );
 };
 

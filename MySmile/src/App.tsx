@@ -6,6 +6,8 @@ import BlogPage from "@/pages/BlogPage";
 import ScreeningPage from "@/pages/ScreeningPage";
 import TestimonialsPage from "@/pages/TestimonialsPage";
 import AdminLoginPage from "@/pages/AdminLoginPage";
+import AdminDashboard from "@/pages/AdminDashboard";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import SecurityPrivacyPage from "@/pages/SecurityPrivacyPage";
 import TermsPage from "@/pages/TermsPage";
 import { Toaster } from "sonner";
@@ -24,6 +26,14 @@ function App() {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/testimonials" element={<TestimonialsPage />} />
             <Route path="/login" element={<AdminLoginPage />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/security-privacy" element={<SecurityPrivacyPage />} />
             <Route path="/terms-conditions" element={<TermsPage />} />
           </Routes>

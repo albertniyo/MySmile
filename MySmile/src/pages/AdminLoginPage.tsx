@@ -4,23 +4,33 @@ import { Lock, Mail, ArrowRight, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { useNavigate } from "react-router-dom";
 
 const AdminLoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate auth for UI purposes
-    setTimeout(() => {
-      setLoading(false);
-      toast.error("Invalid credentials", {
-        description: "Admin access is restricted to authorized personnel only."
-      });
-    }, 1500);
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      toast.error("Authentication failed", { description: error.message });
+    } else {
+      // Optionally check admin table
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        toast.success("Welcome back");
+        navigate("/admin");
+      } else {
+        toast.error("Access denied");
+      }
+    }
+    setLoading(false);
   };
 
   return (

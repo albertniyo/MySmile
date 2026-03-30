@@ -1,68 +1,85 @@
-import React, { useState } from "react";
-import BlogPostPreviewCard from "@/components/BlogPostPreviewCard";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { getBlogs, BlogPost, subscribeToNewsletter } from "@/lib/supabase";
+import BlogPostPreviewCard from "@/components/BlogPostPreviewCard";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
-// BlogPost type
-interface BlogPost {
-  id: string | number;
-  title: string;
-  excerpt: string;
-  content?: string;
-  date: string;
-  image: string;
-  category?: string;
-  created_at?: string;
-}
-
-// Fallback blog data – this is what will be shown
-const BLOG_POSTS: BlogPost[] = [
+// Fallback data (used if Supabase fetch fails or returns empty)
+const FALLBACK_BLOGS: BlogPost[] = [
   {
-    id: 1,
+    id: "1",
     title: "Digital Future",
     excerpt: "Exploring how AI and 3D printing are revolutionizing patient care and precision in modern clinics.",
     content: "AI and 3D printing are revolutionizing modern dentistry. We've integrated these technologies to provide unmatched precision. Our scanners capture 3D models with sub-millimeter accuracy, allowing for same-day crowns and perfectly aligned orthodontics. The future of dental care is digital, less invasive, and highly personalized. This transition means shorter appointments and more durable results for our patients. By leveraging machine learning algorithms, we can now predict potential issues before they become visible to the naked eye, ensuring truly preventive care.",
     date: "March 20, 2024",
-    image: "2.jpg"
+    image: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format",
+    type: "article"
   },
   {
-    id: 2,
+    id: "2",
     title: "Essential Care",
     excerpt: "Why less is often more when it comes to maintaining a healthy and natural smile every day.",
     content: "Maintaining a healthy smile doesn't have to be complicated. At MySmile, we advocate for a minimalist approach: focusing on high-quality basics rather than excessive procedures. This philosophy centers on biocompatible materials and preventive hygiene. By stripping away unnecessary complexity, we emphasize the natural beauty of your teeth. Our goal is to empower you with the knowledge to maintain your oral health simply and effectively. We believe that true luxury in dental care is the peace of mind that comes from simple, effective, and sustainable practices.",
     date: "March 18, 2024",
-    image: "2.jpg"
+    image: "https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=800&auto=format",
+    type: "article"
   },
   {
-    id: 3,
+    id: "3",
     title: "Holistic Health",
     excerpt: "Understanding the deep connection between your oral health and overall physical well-being.",
     content: "The health of your mouth is intrinsically linked to the health of your body. Recent clinical studies show that gum disease can be a precursor to cardiovascular issues and inflammation elsewhere. We focus on this oral-systemic connection, ensuring that every treatment plan considers your overall wellness. Our holistic approach means we don't just fix teeth; we support your body's natural balance through integrated care and nutrition guidance. We collaborate with other health professionals to ensure your oral health contributes positively to your long-term vitality.",
     date: "March 15, 2024",
-    image: "2.jpg"
+    image: "https://images.unsplash.com/photo-1556761175-4b46a572b786?w=800&auto=format",
+    type: "article"
   },
   {
-    id: 4,
+    id: "4",
     title: "Sustainability",
     excerpt: "How our clinic is reducing environmental impact through innovative waste management and materials.",
     content: "As a modern clinic, we are committed to reducing our environmental footprint. From using biodegradable supplies to advanced waste management, MySmile is leading the way in sustainable dentistry. We've eliminated single-use plastics where possible and transitioned to digital-only records to save paper. Choosing MySmile means supporting a practice that cares for both your smile and the planet. We also source materials from suppliers who adhere to strict environmental and ethical standards, ensuring every part of your treatment is responsible.",
     date: "March 12, 2024",
-    image: "2.jpg"
+    image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format",
+    type: "article"
   },
   {
-    id: 5,
+    id: "5",
     title: "The Journey",
     excerpt: "What to expect from your first consultation to your final treatment at MySmile.",
     content: "From your first visit, we want you to feel heard and cared for. Our patient journey is designed for clarity and comfort. It begins with a comprehensive digital screening, followed by a collaborative discussion of your goals. We believe in transparency, providing clear explanations of every step and cost. Your comfort is our priority, and our modern studio environment is crafted to ensure a stress-free experience from start to finish. We utilize aromatherapy and noise-canceling technology to create a sanctuary where dental care feels like self-care.",
     date: "March 10, 2024",
-    image: "2.jpg"
+    image: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format",
+    type: "article"
   }
 ];
 
 const BlogPage = () => {
-  const [blogs] = useState<BlogPost[]>(BLOG_POSTS);
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  const [email, setEmail] = useState("");
+  const [subscribing, setSubscribing] = useState(false);
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const data = await getBlogs();
+        if (data && data.length > 0) {
+          setBlogs(data);
+        } else {
+          setBlogs(FALLBACK_BLOGS);
+        }
+      } catch (err) {
+        console.error("Error fetching blogs:", err);
+        setBlogs(FALLBACK_BLOGS);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBlogs();
+  }, []);
 
   const distributePosts = () => {
     const left: BlogPost[] = [];
@@ -80,7 +97,31 @@ const BlogPage = () => {
 
   const { left, middle, right } = distributePosts();
 
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast.error("Please enter an email address.");
+      return;
+    }
+    setSubscribing(true);
+    const { error } = await subscribeToNewsletter(email);
+    setSubscribing(false);
+    if (error) {
+      if (error.code === "23505") {
+        toast.error("This email is already subscribed.");
+      } else {
+        toast.error("Failed to subscribe. Please try again.");
+      }
+    } else {
+      toast.success("Subscribed successfully!");
+      setEmail("");
+    }
+  };
+
   if (selectedPost) {
+    const isVideo = selectedPost.type === "video";
+    const videoId = selectedPost.video_id;
+
     return (
       <div className="min-h-screen bg-white pt-32 pb-24">
         <div className="container mx-auto px-6 max-w-4xl">
@@ -107,30 +148,42 @@ const BlogPage = () => {
               {selectedPost.title}
             </h1>
 
-            <div className="aspect-[16/9] rounded-[3rem] overflow-hidden mb-16 shadow-2xl">
-              <img
-                src={selectedPost.image}
-                alt={selectedPost.title}
-                className="w-full h-full object-cover grayscale-[0.2]"
-              />
-            </div>
+            {isVideo && videoId ? (
+              <div className="aspect-video rounded-[2rem] overflow-hidden mb-16 shadow-2xl bg-stone-900">
+                <iframe
+                  src={`https://www.youtube.com/embed/${videoId}?autoplay=0`}
+                  title={selectedPost.title}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div className="aspect-[16/9] rounded-[3rem] overflow-hidden mb-16 shadow-2xl">
+                <img
+                  src={selectedPost.image}
+                  alt={selectedPost.title}
+                  className="w-full h-full object-cover grayscale-[0.2]"
+                />
+              </div>
+            )}
 
             <div className="max-w-3xl mx-auto">
               <p className="text-xl md:text-2xl text-stone-400 font-light italic mb-12 leading-relaxed font-serif">
                 "{selectedPost.excerpt}"
               </p>
 
-              <div className="prose prose-stone lg:prose-xl max-w-none text-stone-700 leading-relaxed font-light">
-                <p className="mb-8">
-                  {selectedPost.content}
-                </p>
-                <p className="mb-8">
-                  At MySmile, we believe that clinical excellence is the foundation of patient trust. Every procedure, from the most routine cleaning to complex restorative work, is executed with a focus on durability and aesthetics. Our team is constantly researching new materials and techniques to ensure you receive the highest standard of care available today.
-                </p>
-                <p className="mb-8">
-                  The intersection of health and design is where we find our inspiration. We've crafted an environment that doesn't just treat symptoms but nurtures your overall sense of well-being. We invite you to experience a different kind of dental care—one that is as beautiful as the smiles we create.
-                </p>
-              </div>
+              {!isVideo && (
+                <div className="prose prose-stone lg:prose-xl max-w-none text-stone-700 leading-relaxed font-light">
+                  <p className="mb-8">{selectedPost.content}</p>
+                  <p className="mb-8">
+                    At MySmile, we believe that clinical excellence is the foundation of patient trust. Every procedure, from the most routine cleaning to complex restorative work, is executed with a focus on durability and aesthetics. Our team is constantly researching new materials and techniques to ensure you receive the highest standard of care available today.
+                  </p>
+                  <p className="mb-8">
+                    The intersection of health and design is where we find our inspiration. We've crafted an environment that doesn't just treat symptoms but nurtures your overall sense of well-being. We invite you to experience a different kind of dental care—one that is as beautiful as the smiles we create.
+                  </p>
+                </div>
+              )}
 
               <div className="mt-20 pt-12 border-t border-stone-100 flex flex-col sm:flex-row items-center justify-between gap-8">
                 <div className="flex items-center gap-4">
@@ -175,48 +228,86 @@ const BlogPage = () => {
       </section>
 
       {/* 3‑column blog grid */}
-      <section className="pb-40 md:pb-60">
+      <section className="pb-40 md:pb-60 min-h-[400px]">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
-            {/* Left Column */}
-            <div className="lg:col-span-3 space-y-24 md:space-y-40 order-2 lg:order-1">
-              {left.map((post) => (
-                <BlogPostPreviewCard
-                  key={post.id}
-                  {...post}
-                  size="small"
-                  onClick={() => setSelectedPost(post)}
-                />
-              ))}
-            </div>
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center justify-center py-24"
+              >
+                <Loader2 className="w-10 h-10 animate-spin text-stone-300" />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="grid"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start"
+              >
+                {/* Left column */}
+                <div className="lg:col-span-3 space-y-24 md:space-y-40 order-2 lg:order-1">
+                  {left.map((post) => (
+                    <BlogPostPreviewCard
+                      key={post.id}
+                      id={post.id}
+                      title={post.title}
+                      excerpt={post.excerpt}
+                      date={post.date}
+                      image={post.image}
+                      type={post.type}
+                      video_id={post.video_id}
+                      size="small"
+                      onClick={() => setSelectedPost(post)}
+                    />
+                  ))}
+                </div>
 
-            {/* Middle Column (larger) */}
-            <div className="lg:col-span-6 space-y-32 md:space-y-48 order-1 lg:order-2">
-              {middle.map((post) => (
-                <BlogPostPreviewCard
-                  key={post.id}
-                  {...post}
-                  size="large"
-                  onClick={() => setSelectedPost(post)}
-                />
-              ))}
-            </div>
+                {/* Middle column */}
+                <div className="lg:col-span-6 space-y-32 md:space-y-48 order-1 lg:order-2">
+                  {middle.map((post) => (
+                    <BlogPostPreviewCard
+                      key={post.id}
+                      id={post.id}
+                      title={post.title}
+                      excerpt={post.excerpt}
+                      date={post.date}
+                      image={post.image}
+                      type={post.type}
+                      video_id={post.video_id}
+                      size="large"
+                      onClick={() => setSelectedPost(post)}
+                    />
+                  ))}
+                </div>
 
-            {/* Right Column */}
-            <div className="lg:col-span-3 space-y-24 md:space-y-40 order-3">
-              {right.map((post) => (
-                <BlogPostPreviewCard
-                  key={post.id}
-                  {...post}
-                  size="small"
-                  onClick={() => setSelectedPost(post)}
-                />
-              ))}
-            </div>
-          </div>
+                {/* Right column */}
+                <div className="lg:col-span-3 space-y-24 md:space-y-40 order-3">
+                  {right.map((post) => (
+                    <BlogPostPreviewCard
+                      key={post.id}
+                      id={post.id}
+                      title={post.title}
+                      excerpt={post.excerpt}
+                      date={post.date}
+                      image={post.image}
+                      type={post.type}
+                      video_id={post.video_id}
+                      size="small"
+                      onClick={() => setSelectedPost(post)}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </section>
 
+      {/* Newsletter subscription */}
       <section className="py-40 md:py-60 border-t border-stone-50 bg-stone-50/30">
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-16 md:gap-24">
@@ -224,18 +315,21 @@ const BlogPage = () => {
               <h2 className="text-3xl md:text-5xl font-light text-stone-900 mb-6 uppercase tracking-tight">Join the archive.</h2>
               <p className="text-stone-400 font-light text-lg uppercase tracking-wide">Insights delivered to your inbox.</p>
             </div>
-            <div className="w-full md:w-auto flex flex-col sm:flex-row gap-4 items-end">
+            <form onSubmit={handleSubscribe} className="w-full md:w-auto flex flex-col sm:flex-row gap-4 items-end">
               <div className="flex-1 border-b border-stone-200">
                 <input
                   type="email"
                   placeholder="EMAIL@EXAMPLE.COM"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="bg-transparent px-0 py-6 focus:outline-none text-stone-900 placeholder:text-stone-300 w-full md:w-96 transition-all font-light tracking-widest text-sm"
+                  disabled={subscribing}
                 />
               </div>
-              <Button variant="default" size="lg" className="w-full sm:w-auto">
-                Subscribe
+              <Button type="submit" variant="default" size="lg" className="w-full sm:w-auto" disabled={subscribing}>
+                {subscribing ? "Subscribing..." : "Subscribe"}
               </Button>
-            </div>
+            </form>
           </div>
         </div>
       </section>
